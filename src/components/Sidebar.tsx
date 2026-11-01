@@ -10,7 +10,10 @@ import {
   Settings,
   Sparkles,
   PartyPopper,
-  MapPin
+  MapPin,
+  ShieldCheck,
+  Eye,
+  Lock
 } from 'lucide-react';
 import { UserRole, CelebrationTheme } from '../types';
 
@@ -21,6 +24,7 @@ interface SidebarProps {
   currentTheme: CelebrationTheme;
   onOpenThemesExplorer: () => void;
   onOpenCreateEvent: () => void;
+  onOpenAccessibility?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -29,7 +33,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   userRole,
   currentTheme,
   onOpenThemesExplorer,
-  onOpenCreateEvent
+  onOpenCreateEvent,
+  onOpenAccessibility
 }) => {
   // Navigation links based on Parent Profile vs Vendor Profile
   const parentNavItems = [
@@ -41,6 +46,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'budget', label: 'Budget', icon: Wallet },
     { id: 'guests', label: 'Guest List', icon: Users },
     { id: 'todo', label: 'To-Do', icon: CheckSquare },
+    { id: 'security', label: 'Security & PIN', icon: Lock },
+    { id: 'testing', label: 'Testing QA', icon: ShieldCheck },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
@@ -49,6 +56,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'events', label: 'My Events', icon: Calendar },
     { id: 'maps', label: 'Maps Explorer', icon: MapPin },
     { id: 'todo', label: 'To-Do', icon: CheckSquare },
+    { id: 'security', label: 'Security & PIN', icon: Lock },
+    { id: 'testing', label: 'Testing QA', icon: ShieldCheck },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
@@ -176,6 +185,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </span>
           </div>
         </div>
+
+        {/* Accessibility & Vision Quick Button */}
+        {onOpenAccessibility && (
+          <button
+            onClick={onOpenAccessibility}
+            aria-label="Open accessibility and vision options"
+            className="w-full mt-2.5 flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-[#14152a] hover:bg-[#1f213f] text-slate-400 hover:text-slate-200 border border-[#232547] text-xs font-medium transition-all cursor-pointer"
+          >
+            <Eye className="w-3.5 h-3.5 text-purple-400" />
+            <span>Accessibility (WCAG)</span>
+          </button>
+        )}
       </div>
     </aside>
   );

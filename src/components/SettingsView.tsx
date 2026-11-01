@@ -1,17 +1,36 @@
 import React, { useState } from 'react';
 import { UserRole } from '../types';
-import { Settings, User, Store, IndianRupee, MapPin, Bell, RefreshCw, Check } from 'lucide-react';
+import {
+  Settings,
+  User,
+  Store,
+  IndianRupee,
+  MapPin,
+  Bell,
+  RefreshCw,
+  Check,
+  Eye,
+  ShieldCheck,
+  ArrowRight,
+  Lock
+} from 'lucide-react';
 
 interface SettingsViewProps {
   userRole: UserRole;
   setUserRole: (role: UserRole) => void;
   onResetData: () => void;
+  onOpenAccessibility?: () => void;
+  onOpenTesting?: () => void;
+  onOpenSecurity?: () => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
   userRole,
   setUserRole,
-  onResetData
+  onResetData,
+  onOpenAccessibility,
+  onOpenTesting,
+  onOpenSecurity
 }) => {
   const [parentName, setParentName] = useState('Merwin D’Mello');
   const [parentEmail, setParentEmail] = useState('merwin.dmello@gmail.com');
@@ -168,6 +187,84 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </button>
         </div>
       </form>
+
+      {/* Accessibility & Inclusive Design Card */}
+      <div className="p-5 rounded-2xl bg-[#14152a] border border-[#26284b] shadow-xl space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">
+              <Eye className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-white">Accessibility & Vision Modes</h2>
+              <p className="text-xs text-slate-400">
+                WCAG 2.1 AA compliant controls for high-contrast, reduced motion, and typography scaling.
+              </p>
+            </div>
+          </div>
+          {onOpenAccessibility && (
+            <button
+              onClick={onOpenAccessibility}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-900/40 transition-all cursor-pointer"
+            >
+              <span>Open Options</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Security & Parent Lock Card */}
+      <div className="p-5 rounded-2xl bg-[#14152a] border border-[#26284b] shadow-xl space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+              <Lock className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-white">Security &amp; Parent PIN Center</h2>
+              <p className="text-xs text-slate-400">
+                Configure 4-digit Parent PIN lock, COPPA child privacy protection, and zero-trust cloud data audits.
+              </p>
+            </div>
+          </div>
+          {onOpenSecurity && (
+            <button
+              onClick={onOpenSecurity}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow-md shadow-amber-900/40 transition-all cursor-pointer"
+            >
+              <span>Security Center</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Automated QA & Verification Suite Card */}
+      <div className="p-5 rounded-2xl bg-[#14152a] border border-[#26284b] shadow-xl space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-white">Automated QA Testing Suite</h2>
+              <p className="text-xs text-slate-400">
+                Run 7 in-app test suites verifying theme invariants, budget math, RSVP counts, Firebase schema, Google Maps format, and WCAG accessibility standards.
+              </p>
+            </div>
+          </div>
+          {onOpenTesting && (
+            <button
+              onClick={onOpenTesting}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-900/40 transition-all cursor-pointer"
+            >
+              <span>Launch Tests</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Reset Data Option */}
       <div className="p-4 rounded-2xl bg-[#14152a] border border-[#26284b] flex items-center justify-between">

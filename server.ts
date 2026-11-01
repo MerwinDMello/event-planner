@@ -27,6 +27,11 @@ function getAiClient() {
   });
 }
 
+function isApiKeyPresent(): boolean {
+  const key = process.env.GEMINI_API_KEY;
+  return Boolean(key && key.trim() !== '' && key !== 'MY_GEMINI_API_KEY');
+}
+
 // Curated fallbacks for kid celebrations with direct Google Maps links
 function getThemeFallbackVenues(themeName: string, city: string) {
   const c = city || 'Mumbai';
@@ -129,6 +134,18 @@ function getVendorFallbackPlaces(category: string, city: string) {
 // Endpoint: Discover celebration venues with Google Maps Grounding
 app.post('/api/maps/venues', async (req, res) => {
   const { query, themeName = 'Kids Celebration', city = 'Mumbai', lat, lng } = req.body;
+  const fallbackVenues = getThemeFallbackVenues(themeName, city);
+  const fallbackText = `### Curated Celebration Venues in ${city} for ${themeName}\n\nHere are verified celebration venues suitable for your **${themeName}** in ${city}. You can click the Google Maps links below to explore real photos, reviews, directions, and contact details.\n\n* **Beach & Resort Lawns**: Scenic outdoor spaces with lawns, cabanas, and open-air catering.\n* **Indoor Trampoline & Play Arenas**: Climate-controlled adventure zones with party rooms and obstacle courses.\n* **Science & Planetarium Centers**: Interactive discovery spaces with stellar domes and exhibits.\n* **Clubhouse Banquets**: Private event spaces with custom decor and audio setup allowances.`;
+
+  // If no API key is configured yet, serve curated Google Maps grounded places gracefully
+  if (!isApiKeyPresent()) {
+    return res.json({
+      success: true,
+      text: fallbackText,
+      groundingChunks: fallbackVenues,
+      notice: 'API key not configured. Showing curated Google Maps celebration venues. Configure your key in Settings > Secrets to enable live Gemini prompts.'
+    });
+  }
 
   try {
     const ai = getAiClient();
@@ -159,30 +176,40 @@ app.post('/api/maps/venues', async (req, res) => {
 
     const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
 
-    res.json({
+    return res.json({
       success: true,
-      text: response.text || '',
-      groundingChunks: groundingChunks.length > 0 ? groundingChunks : getThemeFallbackVenues(themeName, city),
+      text: response.text || fallbackText,
+      groundingChunks: groundingChunks.length > 0 ? groundingChunks : fallbackVenues,
     });
   } catch (error: any) {
-    console.error('Error in /api/maps/venues:', error.message || error);
+    const errStr = String(error?.message || error || '');
+    const isQuotaError =
+      error?.status === 429 ||
+      errStr.includes('429') ||
+      errStr.includes('RESOURCE_EXHAUSTED') ||
+      errStr.includes('quota');
 
     const isApiKeyError =
-      error.status === 403 ||
-      error.message?.includes('403') ||
-      error.message?.includes('PERMISSION_DENIED') ||
-      error.message?.includes('API key') ||
-      error.message?.includes('API_KEY_INVALID');
+      error?.status === 400 ||
+      error?.status === 403 ||
+      errStr.includes('API_KEY_INVALID') ||
+      errStr.includes('PERMISSION_DENIED') ||
+      errStr.includes('API key') ||
+      errStr.includes('INVALID_ARGUMENT');
 
-    // Return friendly error with fallback grounded places so user can still browse Google Maps locations!
-    res.json({
-      success: false,
+    console.warn(`[Google Maps Venues Notice]: ${isQuotaError ? 'Quota exhausted (429)' : isApiKeyError ? 'API key invalid (400/403)' : 'Grounding fallback'}`);
+
+    return res.json({
+      success: true,
       isApiKeyError,
-      error: isApiKeyError
-        ? 'Your Gemini API key was reported as leaked or unauthorized (PERMISSION_DENIED 403). Please select a valid API key in the Settings > Secrets panel.'
-        : error.message || 'Failed to search Google Maps venues',
-      fallbackText: `### Curated Kid Celebration Venues in ${city} for ${themeName}\n\nHere are verified celebration venues suitable for your **${themeName}** in ${city}. You can click the Google Maps links below to explore real photos, reviews, directions, and contact details.\n\n* **Beach & Resort Lawns**: Scenic outdoor spaces with lawns, cabanas, and open-air catering.\n* **Indoor Trampoline & Play Arenas**: Climate-controlled adventure zones with party rooms and obstacle courses.\n* **Science & Planetarium Centers**: Interactive discovery spaces with stellar domes and exhibits.\n* **Clubhouse Banquets**: Private event spaces with custom decor and audio setup allowances.`,
-      groundingChunks: getThemeFallbackVenues(themeName, city),
+      isQuotaError,
+      text: fallbackText,
+      groundingChunks: fallbackVenues,
+      notice: isQuotaError
+        ? 'You exceeded your current free Gemini API quota (RESOURCE_EXHAUSTED 429). Please select a billing-enabled API key in Settings > Secrets or wait for your daily quota to reset. Curated Google Maps venues are displayed below.'
+        : isApiKeyError
+        ? 'Your Gemini API key is invalid or unauthorized. Please select a valid API key in the Settings > Secrets panel. Curated Google Maps venues are displayed below.'
+        : 'Displaying curated Google Maps celebration venues.'
     });
   }
 });
@@ -190,6 +217,17 @@ app.post('/api/maps/venues', async (req, res) => {
 // Endpoint: Locate local party vendors & decorators with Google Maps Grounding
 app.post('/api/maps/vendors', async (req, res) => {
   const { category = 'Party Decorators & Balloon Artists', city = 'Mumbai', lat, lng } = req.body;
+  const fallbackVendors = getVendorFallbackPlaces(category, city);
+  const fallbackText = `### Curated Party Vendors & Artists in ${city}\n\nExplore top verified local vendors for **${category}** in ${city}. Click below to view ratings, past party photos, and customer reviews directly on Google Maps:\n\n* **Balloon Sculptors & Backdrops**: Themed balloon arches, neon signs, and photo booths.\n* **Artisan Cake Bakers**: Custom designer fondant cakes tailored to every party theme.\n* **Party Prop & Supply Stores**: Costumes, return gifts, banners, and table decor.`;
+
+  if (!isApiKeyPresent()) {
+    return res.json({
+      success: true,
+      text: fallbackText,
+      groundingChunks: fallbackVendors,
+      notice: 'API key not configured. Showing curated Google Maps party vendors. Configure your key in Settings > Secrets to enable live Gemini prompts.'
+    });
+  }
 
   try {
     const ai = getAiClient();
@@ -218,29 +256,40 @@ app.post('/api/maps/vendors', async (req, res) => {
 
     const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
 
-    res.json({
+    return res.json({
       success: true,
-      text: response.text || '',
-      groundingChunks: groundingChunks.length > 0 ? groundingChunks : getVendorFallbackPlaces(category, city),
+      text: response.text || fallbackText,
+      groundingChunks: groundingChunks.length > 0 ? groundingChunks : fallbackVendors,
     });
   } catch (error: any) {
-    console.error('Error in /api/maps/vendors:', error.message || error);
+    const errStr = String(error?.message || error || '');
+    const isQuotaError =
+      error?.status === 429 ||
+      errStr.includes('429') ||
+      errStr.includes('RESOURCE_EXHAUSTED') ||
+      errStr.includes('quota');
 
     const isApiKeyError =
-      error.status === 403 ||
-      error.message?.includes('403') ||
-      error.message?.includes('PERMISSION_DENIED') ||
-      error.message?.includes('API key') ||
-      error.message?.includes('API_KEY_INVALID');
+      error?.status === 400 ||
+      error?.status === 403 ||
+      errStr.includes('API_KEY_INVALID') ||
+      errStr.includes('PERMISSION_DENIED') ||
+      errStr.includes('API key') ||
+      errStr.includes('INVALID_ARGUMENT');
 
-    res.json({
-      success: false,
+    console.warn(`[Google Maps Vendors Notice]: ${isQuotaError ? 'Quota exhausted (429)' : isApiKeyError ? 'API key invalid (400/403)' : 'Grounding fallback'}`);
+
+    return res.json({
+      success: true,
       isApiKeyError,
-      error: isApiKeyError
-        ? 'Your Gemini API key was reported as leaked or unauthorized (PERMISSION_DENIED 403). Please select a valid API key in the Settings > Secrets panel.'
-        : error.message || 'Failed to locate Google Maps party vendors',
-      fallbackText: `### Curated Party Vendors & Artists in ${city}\n\nExplore top verified local vendors for **${category}** in ${city}. Click below to view ratings, past party photos, and customer reviews directly on Google Maps:\n\n* **Balloon Sculptors & Backdrops**: Themed balloon arches, neon signs, and photo booths.\n* **Artisan Cake Bakers**: Custom designer fondant cakes tailored to every party theme.\n* **Party Prop & Supply Stores**: Costumes, return gifts, banners, and table decor.`,
-      groundingChunks: getVendorFallbackPlaces(category, city),
+      isQuotaError,
+      text: fallbackText,
+      groundingChunks: fallbackVendors,
+      notice: isQuotaError
+        ? 'You exceeded your current free Gemini API quota (RESOURCE_EXHAUSTED 429). Please select a billing-enabled API key in Settings > Secrets or wait for your daily quota to reset. Curated party vendors on Google Maps are displayed below.'
+        : isApiKeyError
+        ? 'Your Gemini API key is invalid or unauthorized. Please select a valid API key in the Settings > Secrets panel. Curated party vendors on Google Maps are displayed below.'
+        : 'Displaying curated Google Maps party vendors.'
     });
   }
 });

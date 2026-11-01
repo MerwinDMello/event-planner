@@ -101,16 +101,11 @@ export const GoogleMapsExplorerView: React.FC<GoogleMapsExplorerViewProps> = ({
       });
 
       const data = await res.json();
-      if (data.success) {
-        setResultText(data.text);
-        setGroundingChunks(data.groundingChunks || []);
-      } else {
-        if (data.isApiKeyError) {
-          setApiKeyError(data.error);
-        }
-        setResultText(data.fallbackText || data.text || `Notice: ${data.error || 'Failed to fetch Google Maps data.'}`);
-        setGroundingChunks(data.groundingChunks || []);
+      if (data.notice) {
+        setApiKeyError(data.notice);
       }
+      setResultText(data.text || data.fallbackText || '');
+      setGroundingChunks(data.groundingChunks || []);
     } catch (err: any) {
       setResultText(`Failed to connect to Maps grounding service: ${err.message}`);
     } finally {
@@ -315,18 +310,17 @@ export const GoogleMapsExplorerView: React.FC<GoogleMapsExplorerViewProps> = ({
         </div>
       </div>
 
-      {/* API Key Alert Banner if Gemini Key was reported as leaked/invalid */}
+      {/* API Key / Quota Alert Banner if Gemini Key was reported as leaked/invalid/exhausted */}
       {apiKeyError && (
         <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-xs">
           <Info className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <h4 className="font-bold text-amber-300">Gemini API Key Notice</h4>
+            <h4 className="font-bold text-amber-300">Gemini API Service Notice</h4>
             <p className="text-slate-300">
-              The Gemini API key was reported as leaked or unauthorized (<code>PERMISSION_DENIED 403</code>).
-              Please configure or select a valid API key in the <span className="font-bold text-amber-400">Settings &gt; Secrets</span> panel in AI Studio.
+              {apiKeyError}
             </p>
             <p className="text-[11px] text-slate-400">
-              In the meantime, the app is providing curated celebration venues &amp; vendors with active Google Maps search links below.
+              You can select or update your API key in the <span className="font-bold text-amber-400">Settings &gt; Secrets</span> panel in AI Studio.
             </p>
           </div>
         </div>

@@ -62,9 +62,16 @@ import { SettingsView } from './components/SettingsView';
 import { NotificationsModal } from './components/NotificationsModal';
 import { VendorQuoteModal } from './components/VendorQuoteModal';
 import { GoogleMapsExplorerView } from './components/GoogleMapsExplorerView';
+import { AccessibilityProvider } from './context/AccessibilityContext';
+import { AccessibilityModal } from './components/AccessibilityModal';
+import { TestingSuiteView } from './components/TestingSuiteView';
+import { SecurityProvider, useSecurity } from './context/SecurityContext';
+import { ParentLockModal } from './components/ParentLockModal';
+import { SecurityCenterView } from './components/SecurityCenterView';
 
 function PlannerContent() {
   const { user, userProfile } = useAuth();
+  const { openPinModalForAction } = useSecurity();
 
   // Navigation & Role State
   const [currentTab, setCurrentTab] = useState<string>('home');
@@ -162,6 +169,7 @@ function PlannerContent() {
   const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+  const [isAccessibilityOpen, setIsAccessibilityOpen] = useState(false);
   const [selectedVendorForQuote, setSelectedVendorForQuote] = useState<VendorItem | null>(null);
   const [isVendorQuoteSubmission, setIsVendorQuoteSubmission] = useState(false);
 
@@ -414,16 +422,18 @@ function PlannerContent() {
     setQuotes((prev) => prev.map((q) => (q.id === quoteId ? { ...q, status } : q)));
   };
 
-  // Reset to sample defaults
+  // Reset to sample defaults (guarded by Parent PIN lock)
   const handleResetData = () => {
-    setEvents(INITIAL_EVENTS);
-    setActivities(INITIAL_ACTIVITIES);
-    setBudgetItems(INITIAL_BUDGET);
-    setGuests(INITIAL_GUESTS);
-    setTodos(INITIAL_TODOS);
-    setQuotes(INITIAL_QUOTES);
-    setCurrentThemeId('halloween-party');
-    setSelectedEventId('evt-1');
+    openPinModalForAction(() => {
+      setEvents(INITIAL_EVENTS);
+      setActivities(INITIAL_ACTIVITIES);
+      setBudgetItems(INITIAL_BUDGET);
+      setGuests(INITIAL_GUESTS);
+      setTodos(INITIAL_TODOS);
+      setQuotes(INITIAL_QUOTES);
+      setCurrentThemeId('halloween-party');
+      setSelectedEventId('evt-1');
+    }, 'Reset to Defaults');
   };
 
   // Global search
@@ -446,6 +456,11 @@ function PlannerContent() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#0b0c16] text-slate-100 antialiased font-sans">
+      {/* Skip to Main Content Link (WCAG 2.4.1) */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+
       {/* 1. Left Sidebar Navigation */}
       <Sidebar
         currentTab={currentTab}
@@ -454,6 +469,7 @@ function PlannerContent() {
         currentTheme={currentTheme}
         onOpenThemesExplorer={() => setIsThemesExplorerOpen(true)}
         onOpenCreateEvent={() => setIsCreateEventOpen(true)}
+        onOpenAccessibility={() => setIsAccessibilityOpen(true)}
       />
 
       {/* 2. Main Content Viewport */}
@@ -469,10 +485,16 @@ function PlannerContent() {
           currentTheme={currentTheme}
           onSelectTheme={(id) => setCurrentThemeId(id)}
           allThemes={CELEBRATION_THEMES}
+          onOpenAccessibility={() => setIsAccessibilityOpen(true)}
+          onOpenSecurity={() => setCurrentTab('security')}
         />
 
         {/* Scrollable Main Area */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 focus:outline-none"
+        >
           {/* Active Search Results */}
           {searchResults && (
             <div className="rounded-2xl border border-purple-500/50 bg-[#13142c] p-5 shadow-2xl space-y-4">
@@ -786,12 +808,21 @@ function PlannerContent() {
             />
           )}
 
+          {/* Security Center View */}
+          {currentTab === 'security' && <SecurityCenterView />}
+
+          {/* Testing Suite View */}
+          {currentTab === 'testing' && <TestingSuiteView />}
+
           {/* Settings View */}
           {currentTab === 'settings' && (
             <SettingsView
               userRole={userRole}
               setUserRole={setUserRole}
               onResetData={handleResetData}
+              onOpenAccessibility={() => setIsAccessibilityOpen(true)}
+              onOpenTesting={() => setCurrentTab('testing')}
+              onOpenSecurity={() => setCurrentTab('security')}
             />
           )}
         </main>
@@ -840,14 +871,25 @@ function PlannerContent() {
         isVendorSubmission={isVendorQuoteSubmission}
         onSubmitQuote={handleSaveQuote}
       />
+
+      <AccessibilityModal
+        isOpen={isAccessibilityOpen}
+        onClose={() => setIsAccessibilityOpen(false)}
+      />
+
+      <ParentLockModal />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <PlannerContent />
-    </AuthProvider>
+    <SecurityProvider>
+      <AccessibilityProvider>
+        <AuthProvider>
+          <PlannerContent />
+        </AuthProvider>
+      </AccessibilityProvider>
+    </SecurityProvider>
   );
 }

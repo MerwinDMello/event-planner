@@ -1,7 +1,23 @@
 import React, { useState } from 'react';
-import { Search, Bell, ChevronDown, Check, UserCheck, Briefcase, Sparkles, LogOut, LogIn, Database } from 'lucide-react';
+import {
+  Search,
+  Bell,
+  ChevronDown,
+  Check,
+  UserCheck,
+  Briefcase,
+  Sparkles,
+  LogOut,
+  LogIn,
+  Database,
+  Eye,
+  Lock,
+  Unlock,
+  ShieldCheck
+} from 'lucide-react';
 import { UserRole, CelebrationTheme } from '../types';
 import { useAuth } from '../firebase/AuthContext';
+import { useSecurity } from '../context/SecurityContext';
 
 interface TopBarProps {
   searchQuery: string;
@@ -13,6 +29,8 @@ interface TopBarProps {
   currentTheme: CelebrationTheme;
   onSelectTheme: (themeId: string) => void;
   allThemes: CelebrationTheme[];
+  onOpenAccessibility?: () => void;
+  onOpenSecurity?: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -25,10 +43,13 @@ export const TopBar: React.FC<TopBarProps> = ({
   currentTheme,
   onSelectTheme,
   allThemes,
+  onOpenAccessibility,
+  onOpenSecurity,
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showSeasonDropdown, setShowSeasonDropdown] = useState(false);
   const { user, userProfile, signInWithGoogle, signOutUser, updateUserRole } = useAuth();
+  const { parentLockEnabled, isParentLocked, lockNow, openPinModalForAction } = useSecurity();
 
   const handleRoleChange = async (role: UserRole) => {
     setUserRole(role);
@@ -66,6 +87,38 @@ export const TopBar: React.FC<TopBarProps> = ({
           <Database className="w-3 h-3 text-emerald-400" />
           <span>Firestore Connected</span>
         </div>
+
+        {/* Parent Lock / Security Badge */}
+        {parentLockEnabled ? (
+          <button
+            onClick={() => {
+              if (isParentLocked) {
+                openPinModalForAction(() => {}, 'Unlock Planner');
+              } else {
+                lockNow();
+              }
+            }}
+            title={isParentLocked ? 'Parent Lock is ACTIVE. Click to unlock with PIN.' : 'Parent Lock is UNLOCKED. Click to lock now.'}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+              isParentLocked
+                ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 hover:bg-amber-500/25'
+                : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/25'
+            }`}
+          >
+            {isParentLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+            <span className="hidden sm:inline text-[11px]">{isParentLocked ? 'Parent Locked' : 'Unlocked'}</span>
+          </button>
+        ) : (
+          onOpenSecurity && (
+            <button
+              onClick={onOpenSecurity}
+              title="Security & Privacy Center"
+              className="p-2 rounded-full text-slate-300 hover:text-white hover:bg-[#1a1b36] transition-colors cursor-pointer"
+            >
+              <ShieldCheck className="w-5 h-5 text-emerald-400" />
+            </button>
+          )
+        )}
 
         {/* Season & Theme Quick Picker */}
         <div className="relative hidden md:block">
@@ -105,6 +158,18 @@ export const TopBar: React.FC<TopBarProps> = ({
             </div>
           )}
         </div>
+
+        {/* Accessibility & Vision Controls */}
+        {onOpenAccessibility && (
+          <button
+            onClick={onOpenAccessibility}
+            aria-label="Open accessibility, vision and contrast options"
+            title="Accessibility & Vision Options (WCAG AA)"
+            className="p-2 rounded-full text-slate-300 hover:text-white hover:bg-[#1a1b36] transition-colors cursor-pointer"
+          >
+            <Eye className="w-5 h-5 text-purple-300 hover:text-purple-200" />
+          </button>
+        )}
 
         {/* Notifications Icon with Badge */}
         <button

@@ -9,6 +9,12 @@
     color: #e2e8f0;
     background-color: #0b0c16;
   }
+
+  /* Universal Visible Focus Rings for Accessibility (WCAG 2.4.7) */
+  :focus-visible {
+    outline: 2px solid #c084fc !important;
+    outline-offset: 2px !important;
+  }
 }
 
 /* Custom subtle scrollbar */
@@ -29,4 +35,62 @@
 
 .font-fun {
   font-family: 'Fredoka', 'Plus Jakarta Sans', cursive, sans-serif;
+}
+
+/* High Contrast Mode for Low Vision (WCAG 1.4.3 / 1.4.6) */
+html.high-contrast {
+  --contrast-border: #6366f1;
+}
+html.high-contrast body {
+  background-color: #03040a !important;
+  color: #ffffff !important;
+}
+html.high-contrast * {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+html.high-contrast button,
+html.high-contrast a,
+html.high-contrast input,
+html.high-contrast select,
+html.high-contrast textarea {
+  border-color: rgba(255, 255, 255, 0.45) !important;
+}
+html.high-contrast .text-slate-400,
+html.high-contrast .text-slate-500 {
+  color: #cbd5e1 !important;
+}
+
+/* Reduced Motion Mode for Vestibular Sensitivity (WCAG 2.3.3) */
+html.reduced-motion *,
+html.reduced-motion *::before,
+html.reduced-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Font Scaling Preferences */
+html.text-scale-large {
+  font-size: 112%;
+}
+html.text-scale-xlarge {
+  font-size: 125%;
+}
+
+/* Skip Link Utility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 10px;
+  background: #9333ea;
+  color: #ffffff;
+  padding: 8px 16px;
+  z-index: 100;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: top 0.2s;
+}
+.skip-link:focus {
+  top: 10px;
 }
