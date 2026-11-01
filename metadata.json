@@ -1,0 +1,6 @@
+{
+  "name": "Celebration Planner - Kids Event & Party Hub",
+  "description": "Kids celebration & event planner for parents and supported vendors featuring 12 magical party themes, budgeting, guest lists, and vendor coordination.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

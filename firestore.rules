@@ -1,0 +1,127 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Default-Deny Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Hardened Helper Primitives
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Connection Health Check Document
+    match /test/{testId} {
+      allow get: if true;
+    }
+
+    // User Profiles
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && request.resource.data.uid == userId
+        && request.resource.data.email is string
+        && request.resource.data.role in ['parent', 'vendor'];
+      allow update: if isOwner(userId)
+        && request.resource.data.uid == userId
+        && request.resource.data.role in ['parent', 'vendor'];
+    }
+
+    // Celebration Events
+    match /events/{eventId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn() && (
+        resource.data.ownerId == request.auth.uid ||
+        resource.data.isPublicForVendors == true
+      );
+      allow create: if isSignedIn()
+        && isValidId(eventId)
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 120;
+      allow update: if isSignedIn()
+        && isValidId(eventId)
+        && resource.data.ownerId == request.auth.uid
+        && request.resource.data.ownerId == resource.data.ownerId;
+      allow delete: if isSignedIn()
+        && isValidId(eventId)
+        && resource.data.ownerId == request.auth.uid;
+    }
+
+    // Budget Items
+    match /budgetItems/{budgetId} {
+      allow get, list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn()
+        && isValidId(budgetId)
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.title is string;
+      allow update: if isSignedIn()
+        && isValidId(budgetId)
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId;
+      allow delete: if isSignedIn()
+        && isValidId(budgetId)
+        && resource.data.userId == request.auth.uid;
+    }
+
+    // Guest List
+    match /guests/{guestId} {
+      allow get, list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn()
+        && isValidId(guestId)
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.name is string;
+      allow update: if isSignedIn()
+        && isValidId(guestId)
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId;
+      allow delete: if isSignedIn()
+        && isValidId(guestId)
+        && resource.data.userId == request.auth.uid;
+    }
+
+    // To-Do Checklists
+    match /todos/{todoId} {
+      allow get, list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn()
+        && isValidId(todoId)
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.title is string;
+      allow update: if isSignedIn()
+        && isValidId(todoId)
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId;
+      allow delete: if isSignedIn()
+        && isValidId(todoId)
+        && resource.data.userId == request.auth.uid;
+    }
+
+    // Vendor Quotes
+    match /quotes/{quoteId} {
+      allow get, list: if isSignedIn() && (
+        resource.data.vendorId == request.auth.uid ||
+        resource.data.clientId == request.auth.uid
+      );
+      allow create: if isSignedIn()
+        && isValidId(quoteId)
+        && request.resource.data.serviceOffered is string;
+      allow update: if isSignedIn()
+        && isValidId(quoteId)
+        && (
+          resource.data.vendorId == request.auth.uid ||
+          resource.data.clientId == request.auth.uid
+        );
+      allow delete: if isSignedIn()
+        && isValidId(quoteId)
+        && resource.data.vendorId == request.auth.uid;
+    }
+  }
+}

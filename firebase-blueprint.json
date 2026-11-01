@@ -1,0 +1,144 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with role and preferences",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Auth UID" },
+        "email": { "type": "string", "description": "User email address" },
+        "displayName": { "type": "string", "description": "User display name" },
+        "photoURL": { "type": "string", "description": "Profile picture URL" },
+        "role": { "type": "string", "enum": ["parent", "vendor"], "description": "User role" },
+        "city": { "type": "string", "description": "Preferred celebration city" },
+        "createdAt": { "type": "string", "description": "Account creation timestamp" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "CelebrationEvent": {
+      "title": "CelebrationEvent",
+      "description": "Kids celebration event document",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Event ID" },
+        "title": { "type": "string", "maxLength": 100, "description": "Event title" },
+        "themeId": { "type": "string", "description": "ID of celebration theme" },
+        "themeName": { "type": "string", "description": "Name of celebration theme" },
+        "date": { "type": "string", "description": "Event date" },
+        "time": { "type": "string", "description": "Event time" },
+        "location": { "type": "string", "maxLength": 150, "description": "Venue location" },
+        "daysRemaining": { "type": "number", "description": "Days remaining until event" },
+        "guestsGoingCount": { "type": "number", "description": "Number of attendees" },
+        "progressPercentage": { "type": "number", "description": "Planning completion percentage" },
+        "budgetEstimated": { "type": "number", "description": "Estimated budget in INR" },
+        "budgetSpent": { "type": "number", "description": "Actual spent budget in INR" },
+        "isOwner": { "type": "boolean", "description": "Owner flag" },
+        "ownerId": { "type": "string", "description": "UID of owner user" },
+        "ownerName": { "type": "string", "description": "Name of event owner" },
+        "notes": { "type": "string", "maxLength": 500, "description": "Event notes" },
+        "isPublicForVendors": { "type": "boolean", "description": "Allow vendors to view and quote" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["title", "themeId", "date", "ownerId"]
+    },
+    "BudgetItem": {
+      "title": "BudgetItem",
+      "description": "Budget expense item for a celebration",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Item ID" },
+        "eventId": { "type": "string", "description": "Associated event ID" },
+        "userId": { "type": "string", "description": "User UID who logged the item" },
+        "category": { "type": "string", "enum": ["Decor", "Food & Drinks", "Cake & Treats", "Entertainment", "Gifts & Favors", "Venue"] },
+        "title": { "type": "string", "maxLength": 120, "description": "Item description" },
+        "estimatedCost": { "type": "number", "description": "Estimated cost in INR" },
+        "actualCost": { "type": "number", "description": "Actual cost in INR" },
+        "status": { "type": "string", "enum": ["planned", "pending", "paid"] },
+        "paidTo": { "type": "string", "maxLength": 100, "description": "Payee name" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["eventId", "userId", "category", "title"]
+    },
+    "GuestItem": {
+      "title": "GuestItem",
+      "description": "Event guest invitee",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Guest ID" },
+        "eventId": { "type": "string", "description": "Associated event ID" },
+        "userId": { "type": "string", "description": "Creator UID" },
+        "name": { "type": "string", "maxLength": 80, "description": "Guest name" },
+        "type": { "type": "string", "enum": ["kid", "parent"] },
+        "familyGroup": { "type": "string", "maxLength": 80, "description": "Family group" },
+        "rsvpStatus": { "type": "string", "enum": ["confirmed", "pending", "declined"] },
+        "dietaryNote": { "type": "string", "maxLength": 120, "description": "Dietary requirements" },
+        "hasGift": { "type": "boolean", "description": "Gift flag" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["eventId", "userId", "name", "rsvpStatus"]
+    },
+    "ToDoItem": {
+      "title": "ToDoItem",
+      "description": "Checklist task for celebration planning",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Task ID" },
+        "eventId": { "type": "string", "description": "Associated event ID" },
+        "userId": { "type": "string", "description": "Creator UID" },
+        "title": { "type": "string", "maxLength": 120, "description": "Task title" },
+        "dueDate": { "type": "string", "description": "Due date" },
+        "category": { "type": "string", "enum": ["Checklist", "Vendors", "Invites", "Decor", "Day-of"] },
+        "completed": { "type": "boolean", "description": "Completed flag" },
+        "priority": { "type": "string", "enum": ["high", "medium", "low"] },
+        "createdAt": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["eventId", "userId", "title"]
+    },
+    "VendorQuote": {
+      "title": "VendorQuote",
+      "description": "Vendor quotation proposal for an event",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Quote ID" },
+        "eventId": { "type": "string", "description": "Target event ID" },
+        "eventName": { "type": "string", "description": "Event name" },
+        "clientName": { "type": "string", "description": "Client name" },
+        "clientId": { "type": "string", "description": "Client UID" },
+        "vendorId": { "type": "string", "description": "Vendor user UID" },
+        "serviceOffered": { "type": "string", "maxLength": 150, "description": "Service description" },
+        "quotedAmount": { "type": "number", "description": "Quoted price in INR" },
+        "dateSubmitted": { "type": "string", "description": "Date submitted" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "declined"] },
+        "message": { "type": "string", "maxLength": 500, "description": "Quote note" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["eventId", "serviceOffered", "quotedAmount", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "UserProfile" },
+      "description": "User profile records indexed by auth UID"
+    },
+    "/events/{eventId}": {
+      "schema": { "$ref": "CelebrationEvent" },
+      "description": "Celebration events created by parents or vendors"
+    },
+    "/budgetItems/{budgetId}": {
+      "schema": { "$ref": "BudgetItem" },
+      "description": "Budget tracking items for celebration events"
+    },
+    "/guests/{guestId}": {
+      "schema": { "$ref": "GuestItem" },
+      "description": "Event invitees and RSVP roster"
+    },
+    "/todos/{todoId}": {
+      "schema": { "$ref": "ToDoItem" },
+      "description": "Execution checklist items for events"
+    },
+    "/quotes/{quoteId}": {
+      "schema": { "$ref": "VendorQuote" },
+      "description": "Vendor quotation proposals and bids"
+    }
+  }
+}
