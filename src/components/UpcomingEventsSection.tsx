@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, MapPin, ArrowRight, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { CelebrationEvent, UserRole } from '../types';
+import { formatEventDate, formatCountdownBadge } from '../utils/formatters';
 
 interface UpcomingEventsSectionProps {
   events: CelebrationEvent[];
@@ -116,7 +117,7 @@ export const UpcomingEventsSection: React.FC<UpcomingEventsSectionProps> = ({
                 {currentEvent.title}
               </h3>
               <span className="shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                In {currentEvent.daysRemaining} days
+                {formatCountdownBadge(currentEvent.daysRemaining)}
               </span>
             </div>
 
@@ -125,12 +126,7 @@ export const UpcomingEventsSection: React.FC<UpcomingEventsSectionProps> = ({
               <div className="flex items-center gap-2">
                 <Calendar className="w-3.5 h-3.5 text-purple-400 shrink-0" />
                 <span className="tabular-nums">
-                  {new Date(currentEvent.date).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                  })}{' '}
-                  • {currentEvent.time}
+                  {formatEventDate(currentEvent.date)} • {currentEvent.time}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-slate-400">

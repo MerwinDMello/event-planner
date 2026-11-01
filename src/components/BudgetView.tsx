@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BudgetItem, CelebrationEvent } from '../types';
 import { Wallet, IndianRupee, Plus, CheckCircle2, AlertCircle, PieChart, Trash2 } from 'lucide-react';
+import { formatCurrencyINR } from '../utils/formatters';
 
 interface BudgetViewProps {
   budgetItems: BudgetItem[];
@@ -99,7 +100,7 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
             {eventTarget.toLocaleString('en-IN')}
           </div>
           <span className="text-[11px] text-slate-500 mt-1 block">
-            Est. total planned: ₹{totalEstimated.toLocaleString('en-IN')}
+            Est. total planned: {formatCurrencyINR(totalEstimated)}
           </span>
         </div>
 
@@ -264,10 +265,10 @@ export const BudgetView: React.FC<BudgetViewProps> = ({
                     )}
                   </td>
                   <td className="py-3 px-4 text-right tabular-nums text-slate-300 font-medium">
-                    ₹{item.estimatedCost.toLocaleString('en-IN')}
+                    {formatCurrencyINR(item.estimatedCost)}
                   </td>
                   <td className="py-3 px-4 text-right tabular-nums font-bold text-amber-400">
-                    ₹{item.actualCost.toLocaleString('en-IN')}
+                    {formatCurrencyINR(item.actualCost)}
                   </td>
                   <td className="py-3 px-4 text-center">
                     <button

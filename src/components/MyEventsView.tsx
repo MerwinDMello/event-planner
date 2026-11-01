@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CelebrationEvent, UserRole, CelebrationTheme } from '../types';
 import { Calendar, MapPin, Users, IndianRupee, Plus, CheckCircle2, Trash2 } from 'lucide-react';
+import { formatCurrencyINR, formatEventDate, formatCountdownBadge } from '../utils/formatters';
 
 interface MyEventsViewProps {
   events: CelebrationEvent[];
@@ -135,7 +136,7 @@ export const MyEventsView: React.FC<MyEventsViewProps> = ({
                   </span>
 
                   <span className="absolute top-3 right-3 text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-500/90 text-slate-950">
-                    In {evt.daysRemaining} days
+                    {formatCountdownBadge(evt.daysRemaining)}
                   </span>
                 </div>
 
@@ -147,7 +148,7 @@ export const MyEventsView: React.FC<MyEventsViewProps> = ({
                     </h3>
                     <p className="text-xs text-slate-400 mt-1 flex items-center gap-2">
                       <Calendar className="w-3.5 h-3.5 text-purple-400" />
-                      <span>{new Date(evt.date).toDateString()} • {evt.time}</span>
+                      <span>{formatEventDate(evt.date)} • {evt.time}</span>
                     </p>
                     <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-2">
                       <MapPin className="w-3.5 h-3.5 text-red-400" />
@@ -170,7 +171,7 @@ export const MyEventsView: React.FC<MyEventsViewProps> = ({
                         <IndianRupee className="w-3 h-3 text-amber-400" /> Budget
                       </span>
                       <span className="font-bold text-white tabular-nums">
-                        ₹{evt.budgetEstimated.toLocaleString('en-IN')}
+                        {formatCurrencyINR(evt.budgetEstimated)}
                       </span>
                     </div>
                   </div>

@@ -16,10 +16,11 @@ import {
 import { CELEBRATION_THEMES } from '../data/celebrationThemes';
 import { INITIAL_BUDGET, INITIAL_GUESTS, INITIAL_TODOS } from '../data/mockData';
 import { sanitizeInput } from '../context/SecurityContext';
+import { formatCurrencyINR, formatEventDate, formatCountdownBadge, truncate } from '../utils/formatters';
 
 export interface TestCaseResult {
   id: string;
-  category: 'Themes' | 'Budget' | 'Guests' | 'Checklist' | 'Firebase' | 'Maps' | 'Accessibility' | 'Security';
+  category: 'Themes' | 'Budget' | 'Guests' | 'Checklist' | 'Firebase' | 'Maps' | 'Accessibility' | 'Security' | 'CodeQuality';
   name: string;
   description: string;
   status: 'passed' | 'failed' | 'pending' | 'running';
@@ -106,6 +107,15 @@ export const TestingSuiteView: React.FC = () => {
       category: 'Security',
       name: 'Zero-Trust Security, COPPA Guard & Input Sanitization Audit',
       description: 'Audits XSS character neutralization, 4-digit PIN validator bounds, and COPPA child privacy masking logic',
+      status: 'pending',
+      durationMs: 0,
+      assertions: []
+    },
+    {
+      id: 'tc-9',
+      category: 'CodeQuality',
+      name: 'Pure Utility Functions, Currency Math & Date Formatting Invariants',
+      description: 'Tests formatCurrencyINR, formatCountdownBadge, formatEventDate, and string truncation under edge cases and boundary conditions',
       status: 'pending',
       durationMs: 0,
       assertions: []
@@ -388,6 +398,70 @@ export const TestingSuiteView: React.FC = () => {
       status: t8Assertions.every((a) => a.passed) ? 'passed' : 'failed',
       durationMs: Math.round(performance.now() - t8Start),
       assertions: t8Assertions
+    };
+    setTests([...updated]);
+
+    // 9. Code Quality & Formatters Invariants Test
+    const t9Start = performance.now();
+    const inrPositive = formatCurrencyINR(25000);
+    const inrZero = formatCurrencyINR(0);
+    const inrNull = formatCurrencyINR(null as any);
+    const countdownZero = formatCountdownBadge(0);
+    const countdownStandard = formatCountdownBadge(12);
+    const dateFormatted = formatEventDate('2026-11-15');
+    const truncated = truncate('Supercalifragilisticexpialidocious', 10);
+
+    const t9Assertions = [
+      {
+        passed: inrPositive === '₹25,000',
+        label: 'formatCurrencyINR formats positive numbers with ₹ and Indian thousand delimiters',
+        actual: inrPositive,
+        expected: '₹25,000'
+      },
+      {
+        passed: inrZero === '₹0',
+        label: 'formatCurrencyINR formats 0 as ₹0 without NaN or invalid signs',
+        actual: inrZero,
+        expected: '₹0'
+      },
+      {
+        passed: inrNull === '₹0',
+        label: 'formatCurrencyINR handles null / undefined gracefully with zero fallback',
+        actual: inrNull,
+        expected: '₹0'
+      },
+      {
+        passed: countdownZero === 'Today!',
+        label: 'formatCountdownBadge produces "Today!" for 0 remaining days',
+        actual: countdownZero,
+        expected: 'Today!'
+      },
+      {
+        passed: countdownStandard === 'In 12 days',
+        label: 'formatCountdownBadge formats standard positive integer countdowns correctly',
+        actual: countdownStandard,
+        expected: 'In 12 days'
+      },
+      {
+        passed: dateFormatted.includes('Nov 15, 2026'),
+        label: 'formatEventDate transforms ISO YYYY-MM-DD cleanly into month, day, year string',
+        actual: dateFormatted,
+        expected: 'Nov 15, 2026'
+      },
+      {
+        passed: truncated === 'Supercalif...',
+        label: 'truncate cuts overflow strings at limit and appends ellipsis without breaking words',
+        actual: truncated,
+        expected: 'Supercalif...'
+      }
+    ];
+
+    await delay(80);
+    updated[8] = {
+      ...updated[8],
+      status: t9Assertions.every((a) => a.passed) ? 'passed' : 'failed',
+      durationMs: Math.round(performance.now() - t9Start),
+      assertions: t9Assertions
     };
 
     setTests([...updated]);
